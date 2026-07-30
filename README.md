@@ -43,7 +43,7 @@ Prerequisites: Docker and Docker Compose.
 
 ```bash
 # 1. Clone the repo
-git clone https://github.com/<your-username>/padova-transit-punctuality.git
+git clone https://github.com/DavideFornari/padova-transit-punctuality.git
 cd padova-transit-punctuality
 
 # 2. Create your .env from the template and fill in secrets
@@ -52,10 +52,15 @@ cp .env.example .env
 # 3. Start Airflow (webserver + scheduler + Postgres)
 make up
 
-# 4. Open the Airflow UI
+# 4. Open the Airflow UI and unpause the DAGs
 #    http://localhost:8080  (admin / admin)
 
-# 5. Stop everything
+# 5. Once the DAGs have collected data: build the warehouse and open the dashboard
+make dbt-run
+make dbt-test
+make dashboard
+
+# 6. Stop everything
 make down
 ```
 
@@ -129,9 +134,14 @@ The publish step exports each mart to Parquet and loads it with `WRITE_TRUNCATE`
 
 If the data ever outgrew DuckDB, the migration path is the first option above, and the `read_source()` macro is already the single seam where the source location is decided.
 
+### Known limits
+
+- Staging models rescan every raw Parquet file on each `dbt run`. At tram volume (thousands of rows/day) this stays fast for a long time; the designed fix, when needed, is converting `stg_trip_updates` to an incremental model filtered on the `date=` Hive partition.
+- The cloud path is verified up to authentication — unit-tested object keys and publish logic, both dbt targets compile, and a cloud-target run reaches Google's storage API (rejected only for lack of real credentials). It has not yet been exercised against a live bucket.
+
 ## Project status
 
-**Milestone 7 of 7** — optional cloud variant: GCS raw-zone mirroring, a DuckDB-over-GCS dbt target, and BigQuery mart publishing. Milestones 1-6 complete.
+**All 7 milestones complete.** Latest addition: the optional cloud variant — GCS raw-zone mirroring, a DuckDB-over-GCS dbt target, and BigQuery mart publishing.
 
 ## License
 
