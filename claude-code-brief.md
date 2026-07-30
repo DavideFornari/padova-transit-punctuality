@@ -1,12 +1,5 @@
 # Project brief — Padova transit punctuality pipeline
 
-## Context
-
-I'm a data engineer building a portfolio project to demonstrate production data engineering
-skills for job applications. The repository will be public on GitHub and read by recruiters
-and technical interviewers, so code quality, documentation and repo hygiene matter as much as
-functionality.
-
 ## What we're building
 
 A data pipeline that measures the punctuality of public transport in Padova (Italy) by
@@ -90,6 +83,37 @@ GTFS-RT positions     ─┘         │
 - [x] **Milestone 7 — Optional cloud variant** — ingestion DAGs mirror the Parquet raw zone
       to GCS, a `cloud` dbt target reads it back over DuckDB httpfs, and the marts are
       published to BigQuery. All three switches are off unless their env vars are set.
+
+## Open follow-ups — cloud variant verification
+
+The cloud path is implemented and merged, but it has never touched a real bucket.
+Verified so far, on 2026-07-30: unit tests cover the GCS object keys and the BigQuery
+publish; both dbt targets compile; `dbt debug --target cloud` passes; and a `dbt run`
+on the cloud target reaches Google over the network — it fails with `HTTP 403` from
+`storage.googleapis.com/<bucket>/gtfs_static/_versions.parquet`, which is the expected
+answer to a request signed with fake HMAC credentials. Everything up to authentication
+is therefore known to work.
+
+What is still unproven, in the order it should be done:
+
+- [ ] Provision a GCS bucket and an HMAC key pair (Cloud Storage > Settings >
+      Interoperability); set `GCS_BUCKET`, `GCS_HMAC_KEY_ID`, `GCS_HMAC_SECRET` in `.env`.
+- [ ] Run the ingestion DAGs with `GCS_BUCKET` set. Confirm objects land under keys that
+      keep their partitions: `trip_updates/date=…/hour=…/*.parquet` and
+      `gtfs_static/version=…/*.parquet`, plus `gtfs_static/_versions.parquet`.
+- [ ] Run `DBT_TARGET=cloud make dbt-run` against the real bucket. This is the riskiest
+      step: it is the first time Hive partition globbing (`version=*`, `date=*/hour=*`) is
+      exercised over GCS rather than a local disk, so confirm `version`, `date` and `hour`
+      come back as columns and the row counts match the local warehouse.
+- [ ] Run `make publish-bq`, then run it a second time — row counts must stay identical,
+      since `WRITE_TRUNCATE` is what makes the publish idempotent.
+- [ ] Optional, needs no GCP account: stand up MinIO locally as an S3-compatible endpoint
+      and point DuckDB at it with an endpoint override, to exercise partition globbing and
+      remote Parquet reads. Does not cover the `gcs` secret type against Google itself.
+
+Unrelated to the cloud path, worth knowing: DuckDB 1.5.5 could not load the `httpfs`
+extension on the development machine — Windows application control blocked the binary.
+DuckDB 1.2.1, the version this project pins, loads it fine.
 
 ## Rules
 
