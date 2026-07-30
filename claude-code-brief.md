@@ -87,7 +87,9 @@ GTFS-RT positions     ─┘         │
       bounds), freshness DAG checking RT and static feed staleness every 10 minutes.
 - [x] **Milestone 6 — Dashboard** — Streamlit app with tabs for punctuality by route,
       time of day, stop (with map), and delay distribution histogram.
-- [ ] Milestone 7 — Optional cloud variant
+- [x] **Milestone 7 — Optional cloud variant** — ingestion DAGs mirror the Parquet raw zone
+      to GCS, a `cloud` dbt target reads it back over DuckDB httpfs, and the marts are
+      published to BigQuery. All three switches are off unless their env vars are set.
 
 ## Rules
 

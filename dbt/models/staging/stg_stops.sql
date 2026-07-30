@@ -7,7 +7,4 @@ select
     stop_name,
     cast(stop_lat as double) as stop_lat,
     cast(stop_lon as double) as stop_lon
-from read_parquet(
-    '{{ var("data_dir") }}/gtfs_static/version=*/stops.parquet',
-    hive_partitioning = true
-)
+from {{ read_source('gtfs_static/version=*/stops.parquet', hive_partitioning=true) }}

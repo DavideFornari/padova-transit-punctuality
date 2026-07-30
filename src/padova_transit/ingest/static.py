@@ -52,13 +52,14 @@ def hash_bytes(data: bytes) -> str:
 # ── Manifest ─────────────────────────────────────────────────────────────────
 
 
-def _manifest_path(base_dir: Path) -> Path:
+def manifest_path(base_dir: Path) -> Path:
+    """Return the path of the versions manifest under ``base_dir``."""
     return base_dir / "gtfs_static" / "_versions.parquet"
 
 
 def read_manifest(base_dir: Path) -> list[dict]:
     """Read the versions manifest, returning an empty list if it doesn't exist."""
-    path = _manifest_path(base_dir)
+    path = manifest_path(base_dir)
     if not path.exists():
         return []
     table = pq.read_table(path)
@@ -67,7 +68,7 @@ def read_manifest(base_dir: Path) -> list[dict]:
 
 def _write_manifest(base_dir: Path, rows: list[dict]) -> Path:
     """Write (overwrite) the versions manifest."""
-    path = _manifest_path(base_dir)
+    path = manifest_path(base_dir)
     path.parent.mkdir(parents=True, exist_ok=True)
     table = pa.Table.from_pylist(rows, schema=VERSIONS_SCHEMA)
     pq.write_table(table, path)
@@ -183,6 +184,7 @@ def ingest_static_gtfs(
     return {
         "version": version_hash,
         "status": "ingested",
+        "version_dir": str(version_dir),
         "valid_from": valid_from,
         "valid_to": valid_to,
     }

@@ -35,6 +35,8 @@ The project currently targets the **tram** feeds (publicly accessible). Bus feed
 
 Python 3.12 | Apache Airflow | Parquet | DuckDB | dbt | Streamlit | GitHub Actions
 
+Optional cloud variant: Google Cloud Storage | BigQuery
+
 ## Running locally
 
 Prerequisites: Docker and Docker Compose.
@@ -74,9 +76,57 @@ make fmt
 make pre-commit-install
 ```
 
+## Cloud variant (optional)
+
+The pipeline runs entirely on a laptop with no cloud account. Setting a few environment variables lights up a cloud path on top of it, without changing a line of SQL:
+
+```
+                          ┌─ local Parquet ──────────────┐
+Ingestion DAGs ───────────┤                              ├──> DuckDB + dbt ──> marts ──> Streamlit
+                          └─ gs://<bucket>/… (mirrored) ─┘                        │
+                                                                                  └──> BigQuery (published)
+```
+
+Three independent switches, each a no-op while unset:
+
+| What | Enabled by | Effect |
+|------|-----------|--------|
+| Raw zone in GCS | `GCS_BUCKET` | Ingestion DAGs mirror every Parquet file to the bucket, preserving the `date=/hour=` and `version=` partition layout |
+| dbt reads from GCS | `DBT_TARGET=cloud` + `GCS_HMAC_KEY_ID` / `GCS_HMAC_SECRET` | Staging models read `gs://…` over DuckDB's httpfs extension instead of the local disk |
+| Marts in BigQuery | `GCP_PROJECT` | `make publish-bq` loads `fct_stop_events` and the dimensions into BigQuery for BI tools |
+
+```bash
+# Install the optional dependencies
+pip install -e ".[cloud]"
+
+# 1. Authenticate for GCS uploads (or set GOOGLE_APPLICATION_CREDENTIALS)
+gcloud auth application-default login
+
+# 2. Fill in the cloud section of .env, then run the DAGs as usual —
+#    files land locally and in gs://<bucket>/ with identical keys.
+
+# 3. Build the warehouse from the bucket instead of the local disk
+DBT_TARGET=cloud make dbt-run
+
+# 4. Publish the marts to BigQuery
+make publish-bq
+```
+
+### Design decision: why the warehouse stays on DuckDB
+
+The obvious reading of "cloud variant" is a full BigQuery port of the dbt project. That was considered and rejected:
+
+- **Full BigQuery port** — external tables over GCS plus cross-database macros so every model runs on either adapter. Every staging model is DuckDB SQL (`strptime`, `to_timestamp`, `::date`, and `INTERVAL` arithmetic in `gtfs_time_to_interval` for GTFS times past midnight), so this means rewriting all twelve models and maintaining two dialects of the trickiest logic in the project — for a dataset of a single tram network that DuckDB handles comfortably.
+- **GCS only** — mirror the raw zone and stop there. Cheap, but nothing downstream ever demonstrates a cloud warehouse.
+- **Hybrid (chosen)** — GCS is the raw zone, DuckDB reads it directly over `httpfs` so the models stay in one dialect, and the finished marts are published to BigQuery where BI tools expect them. Cloud storage and cloud warehouse are both real, and the local path stays byte-for-byte the same code.
+
+The publish step exports each mart to Parquet and loads it with `WRITE_TRUNCATE`, so re-running it replaces table contents rather than appending duplicates — the same idempotency rule the ingestion DAGs follow.
+
+If the data ever outgrew DuckDB, the migration path is the first option above, and the `read_source()` macro is already the single seam where the source location is decided.
+
 ## Project status
 
-**Milestone 6 of 7** — Streamlit dashboard (punctuality by route, time of day, stop, delay distribution). Milestones 1-5 complete.
+**Milestone 7 of 7** — optional cloud variant: GCS raw-zone mirroring, a DuckDB-over-GCS dbt target, and BigQuery mart publishing. Milestones 1-6 complete.
 
 ## License
 

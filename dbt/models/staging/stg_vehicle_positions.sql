@@ -22,7 +22,4 @@ select
     current_status,
     "timestamp" as position_epoch,
     to_timestamp("timestamp") as position_ts
-from read_parquet(
-    '{{ var("data_dir") }}/vehicle_positions/date=*/hour=*/*.parquet',
-    hive_partitioning = true
-)
+from {{ read_source('vehicle_positions/date=*/hour=*/*.parquet', hive_partitioning=true) }}

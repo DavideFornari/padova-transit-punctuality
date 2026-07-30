@@ -21,6 +21,12 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
+# Optional cloud variant: GCS raw zone + publishing the marts to BigQuery.
+# The local path never imports these.
+cloud = [
+    "google-cloud-storage==2.19.0",
+    "google-cloud-bigquery==3.30.0",
+]
 dev = [
     "pytest==8.3.4",
     "ruff==0.9.7",

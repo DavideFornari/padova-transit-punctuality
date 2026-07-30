@@ -1,9 +1,27 @@
 # Local development profile — uses a DuckDB file in the project root.
 # In Docker, DATA_DIR is /opt/airflow/data; locally it's ../data.
+#
+# The `cloud` target is the same DuckDB engine reading the raw Parquet zone
+# straight out of GCS over httpfs, so every model runs unchanged.  Select it
+# with DBT_TARGET=cloud.  See "Cloud variant" in the README for why the
+# warehouse stays on DuckDB instead of moving to BigQuery.
 padova_transit:
-  target: dev
+  target: "{{ env_var('DBT_TARGET', 'dev') }}"
   outputs:
     dev:
       type: duckdb
       path: "{{ env_var('DUCKDB_PATH', '../data/warehouse.duckdb') }}"
       threads: 4
+
+    cloud:
+      type: duckdb
+      path: "{{ env_var('DUCKDB_PATH', '../data/warehouse.duckdb') }}"
+      threads: 4
+      extensions:
+        - httpfs
+      # DuckDB reaches GCS through its S3-compatible interoperability API,
+      # which needs an HMAC key pair (Cloud Storage > Settings > Interoperability).
+      secrets:
+        - type: gcs
+          key_id: "{{ env_var('GCS_HMAC_KEY_ID', '') }}"
+          secret: "{{ env_var('GCS_HMAC_SECRET', '') }}"

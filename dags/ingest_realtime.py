@@ -4,6 +4,8 @@ Polls trip-updates and vehicle-positions feeds in parallel, decodes the
 protobuf payloads, and writes the results as Parquet files partitioned by
 date and hour. Idempotent — re-running for the same interval overwrites
 the same output file.
+
+When GCS_BUCKET is set, each file is also uploaded to Cloud Storage.
 """
 
 from __future__ import annotations
@@ -14,6 +16,7 @@ from pathlib import Path
 
 from airflow.decorators import dag, task
 
+from padova_transit.cloud.gcs import upload_to_gcs
 from padova_transit.constants import (
     GTFSRT_TRAM_TRIP_UPDATES_URL,
     GTFSRT_TRAM_VEHICLE_POSITIONS_URL,
@@ -41,6 +44,8 @@ def ingest_realtime():
             base_dir=DATA_DIR,
             logical_date=logical_date,
         )
+        if result:
+            upload_to_gcs(result, DATA_DIR)
         return str(result) if result else "empty"
 
     @task()
@@ -51,6 +56,8 @@ def ingest_realtime():
             base_dir=DATA_DIR,
             logical_date=logical_date,
         )
+        if result:
+            upload_to_gcs(result, DATA_DIR)
         return str(result) if result else "empty"
 
     # Run both fetches in parallel (no dependency between them).
