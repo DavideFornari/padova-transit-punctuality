@@ -1,0 +1,29 @@
+version: 2
+
+models:
+  - name: stg_gtfs_versions
+    description: "Manifest of ingested GTFS static feed versions with validity windows"
+
+  - name: stg_stops
+    description: "GTFS stops from all schedule versions"
+
+  - name: stg_routes
+    description: "GTFS routes from all schedule versions"
+
+  - name: stg_trips
+    description: "GTFS trips from all schedule versions"
+
+  - name: stg_stop_times
+    description: >
+      GTFS stop_times from all schedule versions.
+      Times are parsed into DuckDB intervals to correctly handle
+      GTFS times >= 24:00:00 (trips crossing midnight).
+
+  - name: stg_calendar_dates
+    description: "GTFS calendar_dates with parsed service_date"
+
+  - name: stg_trip_updates
+    description: "Flattened GTFS-RT trip updates (one row per stop_time_update per poll)"
+
+  - name: stg_vehicle_positions
+    description: "Flattened GTFS-RT vehicle positions (one row per vehicle per poll)"

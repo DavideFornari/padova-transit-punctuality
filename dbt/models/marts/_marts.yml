@@ -1,0 +1,30 @@
+version: 2
+
+models:
+  - name: dim_stops
+    description: "Dimension: unique stops with latest-version attributes"
+    columns:
+      - name: stop_id
+        tests: [unique, not_null]
+
+  - name: dim_routes
+    description: "Dimension: unique routes with latest-version attributes"
+    columns:
+      - name: route_id
+        tests: [unique, not_null]
+
+  - name: dim_trips
+    description: >
+      Dimension: trips with route info, version-aware.
+      Keeps all version/trip combinations for correct schedule joins.
+
+  - name: fct_stop_events
+    description: >
+      Fact table: one row per observed stop event, joining RT trip updates
+      to the correct static schedule version.  Contains scheduled and actual
+      arrival/departure timestamps (Europe/Rome) and delay in seconds.
+    columns:
+      - name: arrival_delay_seconds
+        description: "Seconds late (positive) or early (negative) at arrival"
+      - name: departure_delay_seconds
+        description: "Seconds late (positive) or early (negative) at departure"

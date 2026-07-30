@@ -1,4 +1,4 @@
-.PHONY: up down lint test fmt pre-commit-install
+.PHONY: up down lint test fmt pre-commit-install dbt-run dbt-test
 
 up:   ## Start Airflow and Postgres
 	docker compose up --build -d
@@ -19,3 +19,9 @@ fmt:  ## Auto-format and auto-fix lint issues
 
 pre-commit-install: ## Install pre-commit hooks into .git/hooks
 	pre-commit install
+
+dbt-run: ## Run dbt models
+	cd dbt && dbt run --profiles-dir .
+
+dbt-test: ## Run dbt tests
+	cd dbt && dbt test --profiles-dir .

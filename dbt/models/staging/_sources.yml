@@ -1,0 +1,28 @@
+# Sources are Parquet files written by the ingestion DAGs.
+# dbt-duckdb reads them via read_parquet() in each staging model,
+# so we document them here for lineage but don't configure external_location.
+version: 2
+
+sources:
+  - name: raw
+    description: >
+      Parquet files produced by the ingestion DAGs.
+      Static GTFS files are partitioned by version hash;
+      real-time feeds are partitioned by date and hour.
+    tables:
+      - name: gtfs_versions
+        description: "Manifest of ingested GTFS static schedule versions"
+      - name: stops
+        description: "GTFS stops.txt (all versions)"
+      - name: routes
+        description: "GTFS routes.txt (all versions)"
+      - name: trips
+        description: "GTFS trips.txt (all versions)"
+      - name: stop_times
+        description: "GTFS stop_times.txt (all versions)"
+      - name: calendar_dates
+        description: "GTFS calendar_dates.txt (all versions)"
+      - name: trip_updates
+        description: "GTFS-RT trip updates (Parquet, partitioned by date/hour)"
+      - name: vehicle_positions
+        description: "GTFS-RT vehicle positions (Parquet, partitioned by date/hour)"

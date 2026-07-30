@@ -76,7 +76,7 @@ make pre-commit-install
 
 ## Project status
 
-**Milestone 1 of 7** — Scaffolding (repo structure, Docker Compose, CI, tooling). No pipeline logic yet.
+**Milestone 4 of 7** — Warehouse and dbt models (staging, dimensions, fact table with delay analysis). Milestones 1-3 (scaffolding, real-time ingestion, static schedule ingestion) are complete.
 
 ## License
 

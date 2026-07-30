@@ -1,0 +1,21 @@
+name: padova_transit
+version: "0.1.0"
+config-version: 2
+
+profile: padova_transit
+
+model-paths: ["models"]
+test-paths: ["tests"]
+macro-paths: ["macros"]
+
+vars:
+  # Base directory where ingestion writes Parquet files.
+  # Override with --vars '{"data_dir": "/other/path"}' if needed.
+  data_dir: "../data"
+
+models:
+  padova_transit:
+    staging:
+      +materialized: view
+    marts:
+      +materialized: table

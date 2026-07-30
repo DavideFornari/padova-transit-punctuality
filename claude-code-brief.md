@@ -74,30 +74,17 @@ GTFS-RT positions     ─┘         │
 7. **Optional cloud variant** — the same DAGs writing to GCS and BigQuery. Only after the local
    version works end to end. The local version must always remain runnable with no cloud account.
 
-## Scope for this session
+## Progress
 
-**Milestone 1 only.** Do not write ingestion logic, DAG business logic, dbt models or the
-dashboard yet.
-
-Deliverables:
-
-- Repository layout with clear separation: `dags/`, `src/` (importable package), `dbt/`,
-  `tests/`, `docker/`, `docs/`.
-- `docker-compose.yml` bringing up Airflow (webserver, scheduler, its Postgres metadata DB)
-  with the local `dags/` and `src/` mounted. Pin image versions — no `latest` tags.
-- Dependency management with pinned versions. Use `pyproject.toml`.
-- `.env.example` with documented variables. Never commit a real `.env`.
-- `Makefile` with at least: `make up`, `make down`, `make lint`, `make test`, `make fmt`.
-- `ruff` and `pre-commit` configured.
-- One trivial passing test in `tests/`, so CI has something real to run.
-- GitHub Actions workflow running lint and tests on push and pull request.
-- `.gitignore` covering Python, Docker, dbt, DuckDB files, Parquet output and `.env`.
-- A `README.md` with: what the project does, the architecture diagram above, the data sources
-  with attribution, how to run it locally, and the current status (milestone 1 of 7).
-- An MIT `LICENSE`.
-
-Definition of done: on a clean machine, `make up` starts Airflow and the UI is reachable, and
-`make lint` and `make test` both pass.
+- [x] **Milestone 1 — Scaffolding** — repo structure, Docker Compose, CI, tooling.
+- [x] **Milestone 2 — Real-time ingestion** — DAG polling tram trip-updates and vehicle-positions
+      every minute, decoding protobuf to Parquet. Idempotent via deterministic file paths.
+- [x] **Milestone 3 — Static schedule ingestion** — weekly DAG downloading the GTFS zip,
+      SHA-256 versioning, Parquet conversion with a manifest tracking validity windows.
+- [ ] **Milestone 4 — Warehouse and models** — dbt staging models, dimensions, fact table.
+- [ ] Milestone 5 — Data quality
+- [ ] Milestone 6 — Dashboard
+- [ ] Milestone 7 — Optional cloud variant
 
 ## Rules
 

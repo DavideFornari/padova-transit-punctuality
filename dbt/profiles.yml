@@ -1,0 +1,9 @@
+# Local development profile — uses a DuckDB file in the project root.
+# In Docker, DATA_DIR is /opt/airflow/data; locally it's ../data.
+padova_transit:
+  target: dev
+  outputs:
+    dev:
+      type: duckdb
+      path: "{{ env_var('DUCKDB_PATH', '../data/warehouse.duckdb') }}"
+      threads: 4
