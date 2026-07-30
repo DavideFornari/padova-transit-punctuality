@@ -76,7 +76,7 @@ make pre-commit-install
 
 ## Project status
 
-**Milestone 5 of 7** — Data quality (dbt tests, freshness monitoring DAG). Milestones 1-4 (scaffolding, real-time ingestion, static schedule ingestion, warehouse models) are complete.
+**Milestone 6 of 7** — Streamlit dashboard (punctuality by route, time of day, stop, delay distribution). Milestones 1-5 complete.
 
 ## License
 

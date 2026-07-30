@@ -85,7 +85,8 @@ GTFS-RT positions     ─┘         │
       with version-aware schedule joins, midnight-crossing handling, Europe/Rome timezone.
 - [x] **Milestone 5 — Data quality** — expanded dbt tests (relationships, not_null, delay
       bounds), freshness DAG checking RT and static feed staleness every 10 minutes.
-- [ ] Milestone 6 — Dashboard
+- [x] **Milestone 6 — Dashboard** — Streamlit app with tabs for punctuality by route,
+      time of day, stop (with map), and delay distribution histogram.
 - [ ] Milestone 7 — Optional cloud variant
 
 ## Rules

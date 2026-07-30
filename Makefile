@@ -1,4 +1,4 @@
-.PHONY: up down lint test fmt pre-commit-install dbt-run dbt-test
+.PHONY: up down lint test fmt pre-commit-install dbt-run dbt-test dashboard
 
 up:   ## Start Airflow and Postgres
 	docker compose up --build -d
@@ -25,3 +25,6 @@ dbt-run: ## Run dbt models
 
 dbt-test: ## Run dbt tests
 	cd dbt && dbt test --profiles-dir .
+
+dashboard: ## Launch the Streamlit dashboard
+	streamlit run src/padova_transit/dashboard/app.py
