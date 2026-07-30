@@ -5,7 +5,4 @@ select
     route_id,
     route_short_name,
     cast(route_type as integer) as route_type
-from read_parquet(
-    '{{ var("data_dir") }}/gtfs_static/version=*/routes.parquet',
-    hive_partitioning = true
-)
+from {{ read_source('gtfs_static/version=*/routes.parquet', hive_partitioning=true) }}

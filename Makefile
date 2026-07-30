@@ -1,4 +1,4 @@
-.PHONY: up down lint test fmt pre-commit-install dbt-run dbt-test dashboard
+.PHONY: up down lint test fmt pre-commit-install dbt-run dbt-test dashboard publish-bq
 
 up:   ## Start Airflow and Postgres
 	docker compose up --build -d
@@ -28,3 +28,6 @@ dbt-test: ## Run dbt tests
 
 dashboard: ## Launch the Streamlit dashboard
 	streamlit run src/padova_transit/dashboard/app.py
+
+publish-bq: ## Publish the dbt marts to BigQuery (optional cloud variant)
+	python -m padova_transit.cloud.bigquery

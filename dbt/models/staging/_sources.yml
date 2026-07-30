@@ -1,6 +1,8 @@
 # Sources are Parquet files written by the ingestion DAGs.
-# dbt-duckdb reads them via read_parquet() in each staging model,
-# so we document them here for lineage but don't configure external_location.
+# dbt-duckdb reads them via read_parquet() in each staging model (see the
+# read_source macro, which points at the local data dir or at gs:// depending
+# on the target), so we document them here for lineage but don't configure
+# external_location.
 version: 2
 
 sources:

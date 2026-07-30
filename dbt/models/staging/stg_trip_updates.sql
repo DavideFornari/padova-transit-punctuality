@@ -19,7 +19,4 @@ select
     arrival_time   as arrival_epoch,
     departure_delay,
     departure_time as departure_epoch
-from read_parquet(
-    '{{ var("data_dir") }}/trip_updates/date=*/hour=*/*.parquet',
-    hive_partitioning = true
-)
+from {{ read_source('trip_updates/date=*/hour=*/*.parquet', hive_partitioning=true) }}

@@ -11,7 +11,4 @@ select
     departure_time as departure_time_str,
     {{ gtfs_time_to_interval('arrival_time') }}   as arrival_interval,
     {{ gtfs_time_to_interval('departure_time') }}  as departure_interval
-from read_parquet(
-    '{{ var("data_dir") }}/gtfs_static/version=*/stop_times.parquet',
-    hive_partitioning = true
-)
+from {{ read_source('gtfs_static/version=*/stop_times.parquet', hive_partitioning=true) }}

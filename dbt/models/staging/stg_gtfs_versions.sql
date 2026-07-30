@@ -6,4 +6,4 @@ select
     downloaded_at,
     valid_from,
     valid_to
-from read_parquet('{{ var("data_dir") }}/gtfs_static/_versions.parquet')
+from {{ read_source('gtfs_static/_versions.parquet') }}
