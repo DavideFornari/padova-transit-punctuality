@@ -61,9 +61,12 @@ make down
 
 ### Development
 
+Requires **Python 3.12** — the same version as the Airflow image and CI. Airflow 2.10.5 does not support 3.13+.
+
 ```bash
-# Install dev dependencies (in a virtualenv)
-pip install -e ".[dev]"
+# Create .venv and install the project with dev extras
+make venv
+source .venv/bin/activate        # Windows: .venv\Scripts\activate
 
 # Run linter and tests
 make lint
@@ -75,6 +78,8 @@ make fmt
 # Install pre-commit hooks
 make pre-commit-install
 ```
+
+Dependencies live in `pyproject.toml` only — there is no separate requirements file to keep in sync. `make venv` and CI install from it the same way: Airflow first under [its own constraint file](https://github.com/apache/airflow/blob/constraints-2.10.5/constraints-3.12.txt) (plain `pip install apache-airflow` is not reliably resolvable), then `pip install -e ".[dev]"` on top. Add the `cloud` extra for the optional cloud variant: `pip install -e ".[dev,cloud]"`.
 
 ## Cloud variant (optional)
 

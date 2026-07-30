@@ -1,4 +1,22 @@
-.PHONY: up down lint test fmt pre-commit-install dbt-run dbt-test dashboard publish-bq
+.PHONY: venv up down lint test fmt pre-commit-install dbt-run dbt-test dashboard publish-bq
+
+# Local virtualenv — Python 3.12, matching the Airflow image and CI.
+PY_VERSION := 3.12
+PYTHON ?= $(if $(OS),py -$(PY_VERSION),python$(PY_VERSION))
+VENV_BIN := $(if $(OS),.venv/Scripts,.venv/bin)
+AIRFLOW_VERSION := 2.10.5
+AIRFLOW_CONSTRAINTS := https://raw.githubusercontent.com/apache/airflow/constraints-$(AIRFLOW_VERSION)/constraints-$(PY_VERSION).txt
+
+venv: ## Create .venv (Python 3.12) and install the project with dev extras
+	$(PYTHON) -m venv .venv
+	$(VENV_BIN)/python -m pip install --upgrade pip
+	# Airflow goes in first under its own constraint file: pip cannot resolve
+	# apache-airflow reliably without it.  Installing the project afterwards
+	# applies our pins on top (they deliberately differ from the constraints
+	# for duckdb, pyarrow and ruff, so the two cannot be combined in one step).
+	$(VENV_BIN)/python -m pip install "apache-airflow==$(AIRFLOW_VERSION)" --constraint "$(AIRFLOW_CONSTRAINTS)"
+	$(VENV_BIN)/python -m pip install -e ".[dev]"
+	@echo "Done. Activate with: source $(VENV_BIN)/activate"
 
 up:   ## Start Airflow and Postgres
 	docker compose up --build -d
