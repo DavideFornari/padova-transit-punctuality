@@ -20,16 +20,16 @@ GTFS-RT positions     ─┘         │
 
 ## Data sources
 
-All feeds are published by **Busitalia Veneto** as open data under Italy's IODL 2.0 licence:
+All feeds are published by **Busitalia Veneto** as open data under Italy's IODL 2.0 licence.
+
+The project currently targets the **tram** feeds (publicly accessible). Bus feeds require HTTP Basic Auth and are a possible later extension.
 
 | Feed | Format | URL |
 |------|--------|-----|
-| Bus schedule | GTFS (zip) | `https://gtfs-biv.fsbusitalia.com/GTFS-BIV/gtfs-biv.zip` |
 | Tram schedule | GTFS (zip) | `https://gtfs-biv.fsbusitalia.com/GTFS-BIV-TRAM/gtfs-biv-tram.zip` |
-| Bus trip updates | GTFS-RT (protobuf) | `https://gtfs-biv.fsbusitalia.com/GTFSRT-BIV/start-gtfs-rt-trip-updates-fc.pb` |
-| Bus vehicle positions | GTFS-RT (protobuf) | `https://gtfs-biv.fsbusitalia.com/GTFSRT-BIV/start-gtfs-rt-vehicle-positions-fc.pb` |
 | Tram trip updates | GTFS-RT (protobuf) | `https://gtfs-biv.fsbusitalia.com/GTFSRT-BIV-TRAM/gtfs-rt-trip-updates.pb` |
 | Tram vehicle positions | GTFS-RT (protobuf) | `https://gtfs-biv.fsbusitalia.com/GTFSRT-BIV-TRAM/gtfs-rt-vehicle-positions.pb` |
+| Tram schedule archive | GTFS (zip) | `https://gtfs-biv.fsbusitalia.com/GTFS-BIV-TRAM-HISTORY/` |
 
 ## Stack
 

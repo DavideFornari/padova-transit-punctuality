@@ -14,18 +14,20 @@ comparing the scheduled timetable against real-time vehicle data.
 
 ### Data sources — Busitalia Veneto open GTFS feeds
 
-Static schedule (GTFS, zip, updated roughly weekly):
-- Bus: `https://gtfs-biv.fsbusitalia.com/GTFS-BIV/gtfs-biv.zip`
-- Tram: `https://gtfs-biv.fsbusitalia.com/GTFS-BIV-TRAM/gtfs-biv-tram.zip`
-- Archives of past versions: `https://gtfs-biv.fsbusitalia.com/GTFS-BIV-HISTORY/`
+Primary sources — **tram** (publicly accessible, no auth required):
+- Static schedule: `https://gtfs-biv.fsbusitalia.com/GTFS-BIV-TRAM/gtfs-biv-tram.zip`
+- Trip updates: `https://gtfs-biv.fsbusitalia.com/GTFSRT-BIV-TRAM/gtfs-rt-trip-updates.pb`
+- Vehicle positions: `https://gtfs-biv.fsbusitalia.com/GTFSRT-BIV-TRAM/gtfs-rt-vehicle-positions.pb`
+- Historical archive: `https://gtfs-biv.fsbusitalia.com/GTFS-BIV-TRAM-HISTORY/`
 
-Real-time (GTFS-Realtime, protobuf, refreshed continuously):
-- Bus trip updates: `https://gtfs-biv.fsbusitalia.com/GTFSRT-BIV/start-gtfs-rt-trip-updates-fc.pb`
-- Bus vehicle positions: `https://gtfs-biv.fsbusitalia.com/GTFSRT-BIV/start-gtfs-rt-vehicle-positions-fc.pb`
-- Tram trip updates: `https://gtfs-biv.fsbusitalia.com/GTFSRT-BIV-TRAM/gtfs-rt-trip-updates.pb`
-- Tram vehicle positions: `https://gtfs-biv.fsbusitalia.com/GTFSRT-BIV-TRAM/gtfs-rt-vehicle-positions.pb`
+Secondary sources — **bus** (require HTTP Basic Auth, possible later extension pending open-data access request):
+- Static schedule: `https://gtfs-biv.fsbusitalia.com/GTFS-BIV/gtfs-biv.zip`
+- Trip updates: `https://gtfs-biv.fsbusitalia.com/GTFSRT-BIV/start-gtfs-rt-trip-updates-fc.pb`
+- Vehicle positions: `https://gtfs-biv.fsbusitalia.com/GTFSRT-BIV/start-gtfs-rt-vehicle-positions-fc.pb`
+- Historical archive: `https://gtfs-biv.fsbusitalia.com/GTFS-BIV-HISTORY/`
 
-Start with bus only. Tram is a later extension.
+The project targets the tram feeds. Bus feeds are behind HTTP Basic Auth and are a
+possible later extension, pending an open-data access request.
 
 ### Architecture
 
