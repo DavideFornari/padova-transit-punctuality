@@ -81,8 +81,10 @@ GTFS-RT positions     ─┘         │
       every minute, decoding protobuf to Parquet. Idempotent via deterministic file paths.
 - [x] **Milestone 3 — Static schedule ingestion** — weekly DAG downloading the GTFS zip,
       SHA-256 versioning, Parquet conversion with a manifest tracking validity windows.
-- [ ] **Milestone 4 — Warehouse and models** — dbt staging models, dimensions, fact table.
-- [ ] Milestone 5 — Data quality
+- [x] **Milestone 4 — Warehouse and models** — dbt staging models, dimensions, fact table
+      with version-aware schedule joins, midnight-crossing handling, Europe/Rome timezone.
+- [x] **Milestone 5 — Data quality** — expanded dbt tests (relationships, not_null, delay
+      bounds), freshness DAG checking RT and static feed staleness every 10 minutes.
 - [ ] Milestone 6 — Dashboard
 - [ ] Milestone 7 — Optional cloud variant
 

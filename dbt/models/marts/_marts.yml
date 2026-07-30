@@ -6,17 +6,30 @@ models:
     columns:
       - name: stop_id
         tests: [unique, not_null]
+      - name: stop_name
+        tests: [not_null]
 
   - name: dim_routes
     description: "Dimension: unique routes with latest-version attributes"
     columns:
       - name: route_id
         tests: [unique, not_null]
+      - name: route_short_name
+        tests: [not_null]
 
   - name: dim_trips
     description: >
       Dimension: trips with route info, version-aware.
       Keeps all version/trip combinations for correct schedule joins.
+    columns:
+      - name: trip_id
+        tests: [not_null]
+      - name: route_id
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_routes')
+              field: route_id
 
   - name: fct_stop_events
     description: >
@@ -24,7 +37,21 @@ models:
       to the correct static schedule version.  Contains scheduled and actual
       arrival/departure timestamps (Europe/Rome) and delay in seconds.
     columns:
+      - name: trip_id
+        tests: [not_null]
+      - name: stop_id
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_stops')
+              field: stop_id
+      - name: service_date
+        tests: [not_null]
+      - name: scheduled_arrival
+        tests: [not_null]
       - name: arrival_delay_seconds
         description: "Seconds late (positive) or early (negative) at arrival"
+        tests: [not_null]
       - name: departure_delay_seconds
         description: "Seconds late (positive) or early (negative) at departure"
+        tests: [not_null]

@@ -76,7 +76,7 @@ make pre-commit-install
 
 ## Project status
 
-**Milestone 4 of 7** — Warehouse and dbt models (staging, dimensions, fact table with delay analysis). Milestones 1-3 (scaffolding, real-time ingestion, static schedule ingestion) are complete.
+**Milestone 5 of 7** — Data quality (dbt tests, freshness monitoring DAG). Milestones 1-4 (scaffolding, real-time ingestion, static schedule ingestion, warehouse models) are complete.
 
 ## License
 
