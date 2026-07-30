@@ -1,0 +1,21 @@
+.PHONY: up down lint test fmt pre-commit-install
+
+up:   ## Start Airflow and Postgres
+	docker compose up --build -d
+
+down: ## Stop all services and remove orphan containers
+	docker compose down --remove-orphans
+
+lint: ## Run ruff linter and formatter check
+	ruff check src/ dags/ tests/
+	ruff format --check src/ dags/ tests/
+
+test: ## Run pytest
+	pytest
+
+fmt:  ## Auto-format and auto-fix lint issues
+	ruff check --fix src/ dags/ tests/
+	ruff format src/ dags/ tests/
+
+pre-commit-install: ## Install pre-commit hooks into .git/hooks
+	pre-commit install

@@ -1,0 +1,51 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.backends"
+
+[project]
+name = "padova-transit"
+version = "0.1.0"
+description = "Data pipeline measuring public transport punctuality in Padova, Italy."
+readme = "README.md"
+license = "MIT"
+requires-python = ">=3.12"
+dependencies = [
+    "apache-airflow==2.10.5",
+    "gtfs-realtime-bindings==1.0.0",
+    "pyarrow==19.0.1",
+    "duckdb==1.2.1",
+    "requests==2.32.3",
+    "pendulum==3.0.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest==8.3.4",
+    "ruff==0.9.7",
+    "pre-commit==4.1.0",
+]
+
+[tool.ruff]
+target-version = "py312"
+line-length = 99
+src = ["src", "dags", "tests"]
+
+[tool.ruff.lint]
+select = [
+    "F",      # pyflakes
+    "E", "W", # pycodestyle
+    "I",      # isort
+    "N",      # pep8-naming
+    "UP",     # pyupgrade
+    "B",      # flake8-bugbear
+    "A",      # flake8-builtins
+    "SIM",    # flake8-simplify
+    "RUF",    # ruff-specific rules
+]
+
+[tool.ruff.lint.isort]
+known-first-party = ["padova_transit"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]

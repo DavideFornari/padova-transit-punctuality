@@ -1,0 +1,60 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+*.egg
+dist/
+build/
+.eggs/
+*.whl
+
+# Virtual environments
+.venv/
+venv/
+ENV/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Environment variables
+.env
+
+# Docker
+docker/logs/
+
+# Airflow
+logs/
+airflow.db
+airflow.cfg
+webserver_config.py
+airflow-webserver.pid
+
+# Data files — never commit raw feeds or warehouse files
+*.parquet
+*.pb
+*.duckdb
+*.duckdb.wal
+data/
+
+# dbt
+dbt/target/
+dbt/dbt_packages/
+dbt/logs/
+
+# pytest
+.pytest_cache/
+htmlcov/
+.coverage
+coverage.xml
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Ruff
+.ruff_cache/
