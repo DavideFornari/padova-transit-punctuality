@@ -59,6 +59,19 @@ def test_fct_midnight_crossing(dbt_warehouse: str) -> None:
     assert row[1] == 120
 
 
+def test_scheduled_hour_is_wall_clock(dbt_warehouse: str) -> None:
+    """08:00 GTFS time must land in hour bucket 8 regardless of machine timezone."""
+    import duckdb
+
+    con = duckdb.connect(dbt_warehouse)
+    hour = con.sql("""
+        select extract(hour from scheduled_arrival)
+        from fct_stop_events
+        where trip_id = 'trip-1' and stop_sequence = 1
+    """).fetchone()[0]
+    assert hour == 8
+
+
 def test_dim_stops(dbt_warehouse: str) -> None:
     import duckdb
 
