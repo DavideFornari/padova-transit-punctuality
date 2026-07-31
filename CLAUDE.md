@@ -146,25 +146,7 @@ exact edits; quote blocks marked OLD must match the file exactly (they did on
 
 ## Task 6 — DONE (2026-07-31): Airflow image now installs the project editable, so the ./src mount and live code reload actually work
 
-## Task 7 — dashboard connection blocks dbt writes  [OPERATIONAL, LOW]
-
-**File:** `src/padova_transit/dashboard/app.py`
-
-`@st.cache_resource` keeps one read-only DuckDB connection alive for the app's
-lifetime; DuckDB writers need exclusivity, so `make dbt-run` fails with a lock
-error while the dashboard is open. Fix: delete the `@st.cache_resource` line and
-add a docstring to `get_connection`:
-
-```python
-def get_connection():
-    """A fresh read-only connection per rerun.
-
-    Deliberately not cached: a cached connection would hold a read lock on the
-    DuckDB file for the app's lifetime, blocking `dbt run` from replacing the
-    warehouse.  Connecting costs milliseconds per rerun.
-    """
-    return duckdb.connect(DUCKDB_PATH, read_only=True)
-```
+## Task 7 — DONE (2026-07-31): dashboard no longer caches its DuckDB connection, so it doesn't block `dbt run`
 
 ## Task 8 — empty-string crashes in strptime  [ROBUSTNESS, LOW]
 

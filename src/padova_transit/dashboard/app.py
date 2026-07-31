@@ -21,8 +21,13 @@ from padova_transit.dashboard.queries import (
 DUCKDB_PATH = os.getenv("DUCKDB_PATH", "data/warehouse.duckdb")
 
 
-@st.cache_resource
 def get_connection():
+    """A fresh read-only connection per rerun.
+
+    Deliberately not cached: a cached connection would hold a read lock on the
+    DuckDB file for the app's lifetime, blocking `dbt run` from replacing the
+    warehouse.  Connecting costs milliseconds per rerun.
+    """
     return duckdb.connect(DUCKDB_PATH, read_only=True)
 
 
