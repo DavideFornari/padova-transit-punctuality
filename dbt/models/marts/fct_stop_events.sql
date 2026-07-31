@@ -7,6 +7,8 @@
 -- Key design decisions:
 --   1. Version matching: RT start_date is matched to the GTFS static version
 --      whose validity window (from calendar_dates.txt) covers that date.
+--      Weekly downloads overlap, so several versions can cover one date —
+--      ties break to the most recently downloaded version.
 --   2. Midnight-crossing: GTFS allows times >= 24:00:00.  We add the
 --      stop_times interval to midnight of the service_date, so '25:30:00'
 --      on service_date 2026-07-30 becomes 2026-07-31 01:30:00.
@@ -34,7 +36,7 @@ with version_match as (
         left(v.version, 12) as gtfs_version,
         row_number() over (
             partition by tu.service_date, tu.trip_id, tu.stop_sequence
-            order by tu.feed_timestamp desc
+            order by tu.feed_timestamp desc, v.downloaded_at desc
         ) as rn
     from {{ ref('stg_trip_updates') }} tu
     inner join {{ ref('stg_gtfs_versions') }} v
