@@ -89,6 +89,10 @@ def decode_trip_updates(feed: gtfs_realtime_pb2.FeedMessage) -> list[dict]:
         trip = tu.trip
         vehicle = tu.vehicle
         for stu in tu.stop_time_update:
+            # Absent protobuf fields read as 0, indistinguishable from a genuine
+            # zero-second delay — store None when the event is not present.
+            arrival = stu.arrival if stu.HasField("arrival") else None
+            departure = stu.departure if stu.HasField("departure") else None
             rows.append(
                 {
                     "feed_timestamp": ts,
@@ -102,10 +106,18 @@ def decode_trip_updates(feed: gtfs_realtime_pb2.FeedMessage) -> list[dict]:
                     "vehicle_label": vehicle.label,
                     "stop_sequence": stu.stop_sequence,
                     "stop_id": stu.stop_id,
-                    "arrival_delay": stu.arrival.delay,
-                    "arrival_time": stu.arrival.time,
-                    "departure_delay": stu.departure.delay,
-                    "departure_time": stu.departure.time,
+                    "arrival_delay": arrival.delay
+                    if arrival is not None and arrival.HasField("delay")
+                    else None,
+                    "arrival_time": arrival.time
+                    if arrival is not None and arrival.HasField("time")
+                    else None,
+                    "departure_delay": departure.delay
+                    if departure is not None and departure.HasField("delay")
+                    else None,
+                    "departure_time": departure.time
+                    if departure is not None and departure.HasField("time")
+                    else None,
                     "schedule_relationship": stu.schedule_relationship,
                 }
             )

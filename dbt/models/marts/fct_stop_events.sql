@@ -80,6 +80,8 @@ with_schedule as (
         on d.trip_id = st.trip_id
         and d.stop_sequence = st.stop_sequence
         and d.gtfs_version = st.version
+    -- A row with neither delay carries no punctuality information.
+    where d.arrival_delay is not null or d.departure_delay is not null
 )
 
 select * from with_schedule

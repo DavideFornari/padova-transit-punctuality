@@ -33,6 +33,7 @@ def punctuality_by_route(con: duckdb.DuckDBPyConnection) -> list[dict]:
                 ) / count(*), 1)                             as pct_on_time
             from fct_stop_events f
             left join dim_routes r on f.route_id = r.route_id
+            where f.arrival_delay_seconds is not null
             group by f.route_id, r.route_short_name
             order by avg_delay_sec desc
         """)
@@ -52,6 +53,7 @@ def punctuality_by_hour(con: duckdb.DuckDBPyConnection) -> list[dict]:
                     where arrival_delay_seconds between -60 and 300
                 ) / count(*), 1)                             as pct_on_time
             from fct_stop_events
+            where arrival_delay_seconds is not null
             group by hour_of_day
             order by hour_of_day
         """)
@@ -75,6 +77,7 @@ def punctuality_by_stop(con: duckdb.DuckDBPyConnection) -> list[dict]:
                 ) / count(*), 1)                             as pct_on_time
             from fct_stop_events f
             left join dim_stops s on f.stop_id = s.stop_id
+            where f.arrival_delay_seconds is not null
             group by f.stop_id, s.stop_name, s.stop_lat, s.stop_lon
             order by avg_delay_sec desc
         """)
@@ -106,6 +109,7 @@ def delay_distribution(con: duckdb.DuckDBPyConnection) -> list[dict]:
                 end as bucket_order,
                 count(*) as event_count
             from fct_stop_events
+            where arrival_delay_seconds is not null
             group by delay_bucket, bucket_order
             order by bucket_order
         """)

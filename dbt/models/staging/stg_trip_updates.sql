@@ -15,8 +15,12 @@ select
     vehicle_label,
     stop_sequence,
     stop_id,
+    schedule_relationship,
     arrival_delay,
     arrival_time   as arrival_epoch,
     departure_delay,
     departure_time as departure_epoch
 from {{ read_source('trip_updates/date=*/hour=*/*.parquet', hive_partitioning=true) }}
+-- SCHEDULED (0) only: SKIPPED (1) and NO_DATA (2) updates carry no usable
+-- delay and must not become punctuality events.  The raw Parquet keeps them.
+where schedule_relationship = 0
