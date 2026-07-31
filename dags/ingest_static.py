@@ -11,7 +11,7 @@ mirrored to Cloud Storage.
 from __future__ import annotations
 
 import os
-from datetime import datetime
+from datetime import datetime, timedelta
 from pathlib import Path
 
 from airflow.decorators import dag, task
@@ -29,6 +29,7 @@ DATA_DIR = Path(os.getenv("DATA_DIR", "/opt/airflow/data"))
     start_date=datetime(2026, 1, 1),
     catchup=False,
     max_active_runs=1,
+    default_args={"retries": 2, "retry_delay": timedelta(seconds=30)},
     tags=["ingest", "static", "tram"],
     doc_md=__doc__,
 )

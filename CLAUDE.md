@@ -142,21 +142,7 @@ exact edits; quote blocks marked OLD must match the file exactly (they did on
 
 ## Task 4 — DONE (2026-07-31): freshness check now has a quiet-hours gate and reads only the newest files
 
-## Task 5 — no retries on network-bound DAG tasks  [OPERATIONAL, MEDIUM]
-
-**Files:** `dags/ingest_realtime.py`, `dags/ingest_static.py`
-
-A single transient feed error fails the run; at one poll per minute that is a
-certainty. In both files: extend the datetime import to
-`from datetime import datetime, timedelta`, and add one argument to the `@dag(...)`
-decorator call (after `catchup=False,`):
-
-```python
-    default_args={"retries": 2, "retry_delay": timedelta(seconds=30)},
-```
-
-Do NOT add retries inside `fetch_feed`/`fetch_gtfs_zip` — retrying at both layers
-multiplies attempts. `tests/test_dags.py` will confirm the DAGs still parse.
+## Task 5 — DONE (2026-07-31): ingest DAGs now retry (2 attempts, 30s delay) on network-bound tasks
 
 ## Task 6 — the ./src volume mount does nothing  [OPERATIONAL, MEDIUM]
 
