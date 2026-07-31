@@ -10,8 +10,10 @@
 --   2. Midnight-crossing: GTFS allows times >= 24:00:00.  We add the
 --      stop_times interval to midnight of the service_date, so '25:30:00'
 --      on service_date 2026-07-30 becomes 2026-07-31 01:30:00.
---   3. Timezone: scheduled times are computed in UTC, then cast to
---      Europe/Rome for display.  RT delays are in seconds (timezone-agnostic).
+--   3. Timezone: all timestamps are Europe/Rome wall-clock (naive TIMESTAMP).
+--      GTFS times are agency-local by definition; avoiding timestamptz keeps
+--      results independent of the DuckDB session timezone.  RT delays are in
+--      seconds (timezone-agnostic).
 --   4. Dedup: multiple RT polls may report the same trip+stop.  We keep the
 --      latest observation per (service_date, trip_id, stop_sequence).
 
@@ -57,27 +59,19 @@ with_schedule as (
         d.gtfs_version,
 
         -- Scheduled timestamps: service_date midnight + GTFS interval,
-        -- then timezone-aware in Europe/Rome.
-        timezone('Europe/Rome',
-            (d.service_date::timestamp + st.arrival_interval)::timestamptz
-        ) as scheduled_arrival,
-        timezone('Europe/Rome',
-            (d.service_date::timestamp + st.departure_interval)::timestamptz
-        ) as scheduled_departure,
+        -- kept as Europe/Rome wall-clock (naive).
+        d.service_date::timestamp + st.arrival_interval   as scheduled_arrival,
+        d.service_date::timestamp + st.departure_interval as scheduled_departure,
 
         -- Delays from the RT feed (seconds; positive = late, negative = early).
         d.arrival_delay   as arrival_delay_seconds,
         d.departure_delay as departure_delay_seconds,
 
-        -- Actual timestamps: scheduled + delay.
-        timezone('Europe/Rome',
-            (d.service_date::timestamp + st.arrival_interval
-             + d.arrival_delay * interval '1 second')::timestamptz
-        ) as actual_arrival,
-        timezone('Europe/Rome',
-            (d.service_date::timestamp + st.departure_interval
-             + d.departure_delay * interval '1 second')::timestamptz
-        ) as actual_departure
+        -- Actual timestamps: scheduled + RT delay, same wall-clock convention.
+        d.service_date::timestamp + st.arrival_interval
+            + d.arrival_delay * interval '1 second'   as actual_arrival,
+        d.service_date::timestamp + st.departure_interval
+            + d.departure_delay * interval '1 second' as actual_departure
 
     from deduped d
     inner join {{ ref('stg_stop_times') }} st

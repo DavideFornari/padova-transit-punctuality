@@ -35,7 +35,8 @@ models:
     description: >
       Fact table: one row per observed stop event, joining RT trip updates
       to the correct static schedule version.  Contains scheduled and actual
-      arrival/departure timestamps (Europe/Rome) and delay in seconds.
+      arrival/departure timestamps (Europe/Rome wall clock, naive timestamps)
+      and delay in seconds.
     columns:
       - name: trip_id
         tests: [not_null]
