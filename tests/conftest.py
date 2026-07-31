@@ -24,13 +24,16 @@ def _create_synthetic_data(data_dir: Path) -> None:
     static_dir = data_dir / "gtfs_static"
     static_dir.mkdir(parents=True)
 
+    # Two versions with overlapping validity windows — the normal case for
+    # weekly downloads.  fct_stop_events must pick the newer one (by
+    # downloaded_at) for service dates covered by both.
     pq.write_table(
         pa.table(
             {
-                "version": ["aabbccdd1122eeff"],
-                "downloaded_at": ["2026-07-28T04:00:00"],
-                "valid_from": ["20260728"],
-                "valid_to": ["20260803"],
+                "version": ["aabbccdd1122eeff", "ffeeddccbba91234"],
+                "downloaded_at": ["2026-07-21T04:00:00", "2026-07-28T04:00:00"],
+                "valid_from": ["20260721", "20260728"],
+                "valid_to": ["20260803", "20260810"],
             }
         ),
         static_dir / "_versions.parquet",
@@ -90,6 +93,64 @@ def _create_synthetic_data(data_dir: Path) -> None:
             }
         ),
         ver_dir / "calendar_dates.parquet",
+    )
+
+    # Second, newer overlapping version — identical except trip-1/seq-1 moves
+    # 5 minutes later, so the tie-break test can tell which version won.
+    ver_dir2 = static_dir / "version=ffeeddccbba9"
+    ver_dir2.mkdir()
+
+    pq.write_table(
+        pa.table(
+            {
+                "stop_id": ["S1", "S2"],
+                "stop_name": ["Stazione", "Pontevigodarzere"],
+                "stop_lat": ["45.4175", "45.4340"],
+                "stop_lon": ["11.8809", "11.8720"],
+            }
+        ),
+        ver_dir2 / "stops.parquet",
+    )
+
+    pq.write_table(
+        pa.table({"route_id": ["T1"], "route_short_name": ["SIR1"], "route_type": ["0"]}),
+        ver_dir2 / "routes.parquet",
+    )
+
+    pq.write_table(
+        pa.table(
+            {
+                "route_id": ["T1", "T1"],
+                "service_id": ["1", "1"],
+                "trip_id": ["trip-1", "trip-night"],
+                "direction_id": ["0", "1"],
+            }
+        ),
+        ver_dir2 / "trips.parquet",
+    )
+
+    pq.write_table(
+        pa.table(
+            {
+                "trip_id": ["trip-1", "trip-1", "trip-night"],
+                "arrival_time": ["08:05:00", "08:10:00", "25:15:00"],
+                "departure_time": ["08:06:00", "08:11:00", "25:16:00"],
+                "stop_id": ["S1", "S2", "S1"],
+                "stop_sequence": ["1", "2", "1"],
+            }
+        ),
+        ver_dir2 / "stop_times.parquet",
+    )
+
+    pq.write_table(
+        pa.table(
+            {
+                "service_id": ["1", "1"],
+                "date": ["20260730", "20260731"],
+                "exception_type": ["1", "1"],
+            }
+        ),
+        ver_dir2 / "calendar_dates.parquet",
     )
 
     # ── RT trip updates ──────────────────────────────────────────────────
