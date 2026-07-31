@@ -276,6 +276,8 @@ def dbt_warehouse():
             result = runner.invoke(
                 [
                     "run",
+                    "--target",
+                    "dev",
                     "--profiles-dir",
                     str(DBT_DIR),
                     "--project-dir",

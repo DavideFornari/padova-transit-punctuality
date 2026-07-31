@@ -150,13 +150,7 @@ exact edits; quote blocks marked OLD must match the file exactly (they did on
 
 ## Task 8 — DONE (2026-07-31): strptime calls on optional date fields now guarded with nullif
 
-## Task 9 — dbt test fixture can leak onto the cloud target  [ROBUSTNESS, LOW]
-
-**File:** `tests/conftest.py`
-
-The fixture doesn't pin the dbt target, so `DBT_TARGET=cloud` exported in a shell
-silently runs the integration suite against the cloud profile. In the
-`runner.invoke([...])` list, after `"run",` add two elements: `"--target", "dev",`.
+## Task 9 — DONE (2026-07-31): dbt test fixture now pins --target dev, confirmed to hold against DBT_TARGET=cloud in the environment
 
 ## Task 10 — DONE (2026-07-31): README status line updated
 
