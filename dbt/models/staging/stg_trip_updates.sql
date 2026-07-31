@@ -9,7 +9,7 @@ select
     route_id,
     direction_id,
     start_date,
-    strptime(start_date, '%Y%m%d')::date as service_date,
+    strptime(nullif(start_date, ''), '%Y%m%d')::date as service_date,
     start_time,
     vehicle_id,
     vehicle_label,

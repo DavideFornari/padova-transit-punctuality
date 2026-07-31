@@ -40,8 +40,8 @@ with version_match as (
         ) as rn
     from {{ ref('stg_trip_updates') }} tu
     inner join {{ ref('stg_gtfs_versions') }} v
-        on tu.service_date >= strptime(v.valid_from, '%Y%m%d')::date
-        and tu.service_date <= strptime(v.valid_to, '%Y%m%d')::date
+        on tu.service_date >= strptime(nullif(v.valid_from, ''), '%Y%m%d')::date
+        and tu.service_date <= strptime(nullif(v.valid_to, ''), '%Y%m%d')::date
 ),
 
 deduped as (

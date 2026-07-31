@@ -148,20 +148,7 @@ exact edits; quote blocks marked OLD must match the file exactly (they did on
 
 ## Task 7 — DONE (2026-07-31): dashboard no longer caches its DuckDB connection, so it doesn't block `dbt run`
 
-## Task 8 — empty-string crashes in strptime  [ROBUSTNESS, LOW]
-
-`strptime('', '%Y%m%d')` is a runtime error that kills the whole model. Guard the
-fields that are optional in the source data with `nullif`:
-
-- `dbt/models/staging/stg_trip_updates.sql` and `stg_vehicle_positions.sql`:
-  OLD `strptime(start_date, '%Y%m%d')::date as service_date`
-  NEW `strptime(nullif(start_date, ''), '%Y%m%d')::date as service_date`
-- `dbt/models/marts/fct_stop_events.sql` join: wrap both bounds —
-  OLD `strptime(v.valid_from, '%Y%m%d')::date` / `strptime(v.valid_to, '%Y%m%d')::date`
-  NEW `strptime(nullif(v.valid_from, ''), '%Y%m%d')::date` /
-  `strptime(nullif(v.valid_to, ''), '%Y%m%d')::date`
-
-(NULL service_date rows simply drop out of the inner join — correct behaviour.)
+## Task 8 — DONE (2026-07-31): strptime calls on optional date fields now guarded with nullif
 
 ## Task 9 — dbt test fixture can leak onto the cloud target  [ROBUSTNESS, LOW]
 
