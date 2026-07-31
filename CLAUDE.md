@@ -144,17 +144,7 @@ exact edits; quote blocks marked OLD must match the file exactly (they did on
 
 ## Task 5 — DONE (2026-07-31): ingest DAGs now retry (2 attempts, 30s delay) on network-bound tasks
 
-## Task 6 — the ./src volume mount does nothing  [OPERATIONAL, MEDIUM]
-
-**File:** `docker/airflow.Dockerfile`
-
-`docker-compose.yml` mounts `./src` into the container, but the image installs the
-package NON-editable, so the scheduler imports the copy baked into site-packages
-and host edits never take effect — a silently broken dev loop. Fix: OLD
-`RUN pip install --no-cache-dir /opt/airflow/project` NEW
-`RUN pip install --no-cache-dir -e /opt/airflow/project`. With the editable
-install resolving to `/opt/airflow/project/src` — exactly where compose mounts the
-host's `src/` — live code reload works. Add a comment saying so.
+## Task 6 — DONE (2026-07-31): Airflow image now installs the project editable, so the ./src mount and live code reload actually work
 
 ## Task 7 — dashboard connection blocks dbt writes  [OPERATIONAL, LOW]
 
