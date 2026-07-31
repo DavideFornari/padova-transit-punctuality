@@ -126,47 +126,52 @@ recorded twice, and both must move together.
 
 ---
 
-# Improvement backlog
+# Hardening pass (2026-07-31) — closed
 
-Verified findings from a full-project review (2026-07-31). Work top to bottom —
-tasks are ordered by severity. **One commit per task**, and check the task off (or
-delete it) in this file in the same commit that implements it. Each task lists the
-exact edits; quote blocks marked OLD must match the file exactly (they did on
-2026-07-31).
+A full-project review on 2026-07-31 found nine bugs plus one documentation gap.
+All nine are fixed, one commit each; nothing below is actionable. Full detail —
+the exact OLD/NEW edits and the empirical proof each fix actually worked — lives
+in the corresponding commit messages on `main` (search for "Fix" / "Add" dated
+2026-07-31), not repeated here.
 
-## Task 1 — DONE (2026-07-31): fct timestamps are now Europe/Rome wall-clock, independent of session timezone
+- **fct timestamps depended on the machine's timezone.** `(x::timestamp)::timestamptz`
+  read the DuckDB *session* timezone; the same row produced `scheduled_arrival`
+  08:00 on a Rome machine, 10:00 in Docker (UTC). Fixed by keeping all
+  `fct_stop_events` timestamps as naive Europe/Rome wall-clock — GTFS times are
+  agency-local by definition, so no conversion was ever needed.
+- **GTFS version choice was arbitrary when validity windows overlap.** Weekly
+  downloads make overlap the normal case; the dedup `row_number()` tied on
+  `feed_timestamp` alone, identical across fanned-out version matches. Fixed by
+  breaking ties on `downloaded_at desc` (prefer the newest download).
+- **Skipped stops decoded as "perfectly on time."** Protobuf's zero-default for
+  absent fields made a SKIPPED stop's delay indistinguishable from a genuine
+  zero-second delay. Fixed by storing NULL when `HasField()` is false, filtering
+  non-SCHEDULED updates in staging, and excluding NULL delays from dashboard
+  aggregates and the histogram.
+- **Freshness check false-alarmed all night and rescanned all history.** No
+  quiet-hours gate existed despite the docstring claiming one; every 10-minute
+  check also read every RT Parquet file ever written. Fixed with a 00:00–05:00
+  Europe/Rome gate and a bounded scan of only the newest files (filenames sort
+  chronologically).
+- **No retries on network-bound DAG tasks.** Added `retries=2, retry_delay=30s`
+  to both ingest DAGs (Airflow layer only, not inside the fetch functions).
+- **The `./src` volume mount did nothing.** The Airflow image installed the
+  package non-editable, so host edits never reached the running scheduler.
+  Switched to `pip install -e`.
+- **Dashboard connection blocked `dbt run`.** Removed `@st.cache_resource` on the
+  DuckDB connection, which held a lock for the app's whole lifetime.
+- **Empty-string `strptime` crashes.** Wrapped the optional date fields
+  (`start_date`, `valid_from`, `valid_to`) in `nullif(x, '')`.
+- **dbt test fixture could leak onto the cloud target.** Pinned `--target dev`
+  in the fixture's `dbt run` invocation.
 
-## Task 2 — DONE (2026-07-31): GTFS version tie-break now prefers the most recently downloaded version
-
-## Task 3 — DONE (2026-07-31): skipped stops now decode as NULL, not zero delay; filtered out of the fact table and dashboard aggregates
-
-## Task 4 — DONE (2026-07-31): freshness check now has a quiet-hours gate and reads only the newest files
-
-## Task 5 — DONE (2026-07-31): ingest DAGs now retry (2 attempts, 30s delay) on network-bound tasks
-
-## Task 6 — DONE (2026-07-31): Airflow image now installs the project editable, so the ./src mount and live code reload actually work
-
-## Task 7 — DONE (2026-07-31): dashboard no longer caches its DuckDB connection, so it doesn't block `dbt run`
-
-## Task 8 — DONE (2026-07-31): strptime calls on optional date fields now guarded with nullif
-
-## Task 9 — DONE (2026-07-31): dbt test fixture now pins --target dev, confirmed to hold against DBT_TARGET=cloud in the environment
-
-## Task 10 — DONE (2026-07-31): README status line updated
-
-## Task 11 — dangling dbt sources  [OPTIONAL — decided 2026-07-31: not necessary for now]
-
-`dbt/models/staging/_sources.yml` declares eight source tables that no model
-references via `source()` (staging models call `{{ read_source(...) }}`, the
-cloud-variant macro, directly instead), so dbt lineage is decorative — the
-header comment already explains this. Discussed with the user: keeping it as
-documentation-only is fine; wiring it up via `external_location` and
-`{{ source('raw', ...) }}` would touch all eight staging models for mostly
-cosmetic benefit (an accurate `dbt docs` lineage graph and source-freshness
-checks the project doesn't currently need). Revisit only if either of those
-becomes a real need — otherwise leave as-is.
-
-## Task 12 — DONE (2026-07-31): freshness cost documented in README's Known limits
+**Decided, not fixed:** `dbt/models/staging/_sources.yml` declares eight source
+tables no model actually references via `source()` — staging models read through
+the `read_source()` macro instead, so dbt's lineage graph is decorative. Discussed
+with the user 2026-07-31: left as documentation. Wiring it up via
+`external_location` + `{{ source('raw', ...) }}` would touch all eight staging
+models for benefits (accurate `dbt docs` lineage, source-freshness checks) the
+project doesn't currently need. Revisit only if either becomes a real need.
 
 ---
 

@@ -144,6 +144,8 @@ If the data ever outgrew DuckDB, the migration path is the first option above, a
 
 **All 7 milestones complete.** Latest addition: the optional cloud variant — GCS raw-zone mirroring, a DuckDB-over-GCS dbt target, and BigQuery mart publishing.
 
+A full-project review (2026-07-31) found nine issues — three correctness bugs in the fact table (timezone handling, schedule-version tie-breaks, skipped-stop delays), the rest operational and robustness fixes — all resolved; see `CLAUDE.md` for the closed-out list.
+
 ## License
 
 [MIT](LICENSE)
