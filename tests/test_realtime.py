@@ -93,12 +93,37 @@ def test_decode_trip_updates_row_count() -> None:
 
 
 def test_decode_trip_updates_fields() -> None:
-    row = decode_trip_updates(_make_trip_update_feed())[0]
+    rows = decode_trip_updates(_make_trip_update_feed())
+    row = rows[0]
     assert row["feed_timestamp"] == 1700000000
     assert row["trip_id"] == "trip-42"
     assert row["stop_id"] == "stop-A"
     assert row["arrival_delay"] == 30
     assert row["vehicle_id"] == "tram-01"
+
+    # stu2 has no departure block at all — must decode as None, not 0.
+    assert rows[1]["departure_delay"] is None
+    assert rows[1]["departure_time"] is None
+
+
+def test_decode_skipped_stop_yields_none_not_zero() -> None:
+    """A SKIPPED stop with no arrival/departure must not decode as delay 0."""
+    feed = rt.FeedMessage()
+    feed.header.gtfs_realtime_version = "2.0"
+    feed.header.timestamp = 1700000000
+    entity = feed.entity.add()
+    entity.id = "entity-skip"
+    tu = entity.trip_update
+    tu.trip.trip_id = "trip-42"
+    stu = tu.stop_time_update.add()
+    stu.stop_sequence = 7
+    stu.stop_id = "stop-X"
+    stu.schedule_relationship = 1  # SKIPPED
+
+    rows = decode_trip_updates(feed)
+    assert rows[0]["arrival_delay"] is None
+    assert rows[0]["departure_delay"] is None
+    assert rows[0]["schedule_relationship"] == 1
 
 
 def test_decode_vehicle_positions_row_count() -> None:

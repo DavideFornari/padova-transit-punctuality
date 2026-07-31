@@ -51,8 +51,10 @@ models:
       - name: scheduled_arrival
         tests: [not_null]
       - name: arrival_delay_seconds
-        description: "Seconds late (positive) or early (negative) at arrival"
-        tests: [not_null]
+        description: >
+          Seconds late (positive) or early (negative) at arrival.
+          NULL when the feed omitted this event.
       - name: departure_delay_seconds
-        description: "Seconds late (positive) or early (negative) at departure"
-        tests: [not_null]
+        description: >
+          Seconds late (positive) or early (negative) at departure.
+          NULL when the feed omitted this event.
