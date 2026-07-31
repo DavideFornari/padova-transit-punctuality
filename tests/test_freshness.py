@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 import pyarrow as pa
@@ -56,7 +56,7 @@ def test_latest_rt_feed_timestamp(tmp_path: Path) -> None:
 
 
 def test_check_rt_freshness_fresh(tmp_path: Path) -> None:
-    now = datetime(2026, 7, 30, 8, 5, 0)
+    now = datetime(2026, 7, 30, 8, 5, 0, tzinfo=UTC)
     ts = int(now.timestamp()) - 120  # 2 minutes ago
     _write_rt_parquet(tmp_path, "trip_updates", ts)
     # Should not raise
@@ -64,7 +64,7 @@ def test_check_rt_freshness_fresh(tmp_path: Path) -> None:
 
 
 def test_check_rt_freshness_stale(tmp_path: Path) -> None:
-    now = datetime(2026, 7, 30, 8, 30, 0)
+    now = datetime(2026, 7, 30, 8, 30, 0, tzinfo=UTC)
     ts = int(now.timestamp()) - 900  # 15 minutes ago
     _write_rt_parquet(tmp_path, "trip_updates", ts)
     with pytest.raises(StaleDataError, match="stale"):
@@ -73,8 +73,18 @@ def test_check_rt_freshness_stale(tmp_path: Path) -> None:
 
 def test_check_rt_freshness_no_data_does_not_raise(tmp_path: Path) -> None:
     """No data is not an error — may be outside service hours."""
-    now = datetime(2026, 7, 30, 3, 0, 0)
+    now = datetime(2026, 7, 30, 10, 0, 0, tzinfo=UTC)
     check_rt_freshness(tmp_path, "trip_updates", now=now)
+
+
+def test_rt_freshness_skipped_during_quiet_hours(tmp_path: Path) -> None:
+    """02:30 Europe/Rome (00:30 UTC in summer): stale data must NOT raise."""
+    now = datetime(2026, 7, 30, 0, 30, tzinfo=UTC)
+    # Data genuinely stale by hours, not just missing — the quiet-hours gate
+    # must short-circuit before the staleness check ever runs.
+    stale_ts = int(now.timestamp()) - 4 * 3600
+    _write_rt_parquet(tmp_path, "trip_updates", stale_ts)
+    check_rt_freshness(tmp_path, "trip_updates", now=now)  # must not raise
 
 
 # ── Static freshness ────────────────────────────────────────────────────────
@@ -87,23 +97,23 @@ def test_latest_static_download_no_manifest(tmp_path: Path) -> None:
 def test_latest_static_download(tmp_path: Path) -> None:
     _write_manifest(tmp_path, "2026-07-28T04:00:00")
     result = latest_static_download(tmp_path)
-    assert result == datetime(2026, 7, 28, 4, 0, 0)
+    assert result == datetime(2026, 7, 28, 4, 0, 0, tzinfo=UTC)
 
 
 def test_check_static_freshness_fresh(tmp_path: Path) -> None:
     _write_manifest(tmp_path, "2026-07-28T04:00:00")
-    now = datetime(2026, 7, 30, 8, 0, 0)
+    now = datetime(2026, 7, 30, 8, 0, 0, tzinfo=UTC)
     check_static_freshness(tmp_path, now=now, max_age=timedelta(days=14))
 
 
 def test_check_static_freshness_stale(tmp_path: Path) -> None:
     _write_manifest(tmp_path, "2026-07-01T04:00:00")
-    now = datetime(2026, 7, 30, 8, 0, 0)
+    now = datetime(2026, 7, 30, 8, 0, 0, tzinfo=UTC)
     with pytest.raises(StaleDataError, match="stale"):
         check_static_freshness(tmp_path, now=now, max_age=timedelta(days=14))
 
 
 def test_check_static_freshness_no_manifest(tmp_path: Path) -> None:
-    now = datetime(2026, 7, 30, 8, 0, 0)
+    now = datetime(2026, 7, 30, 8, 0, 0, tzinfo=UTC)
     with pytest.raises(StaleDataError, match="No static GTFS versions"):
         check_static_freshness(tmp_path, now=now)
