@@ -137,6 +137,7 @@ If the data ever outgrew DuckDB, the migration path is the first option above, a
 ### Known limits
 
 - Staging models rescan every raw Parquet file on each `dbt run`. At tram volume (thousands of rows/day) this stays fast for a long time; the designed fix, when needed, is converting `stg_trip_updates` to an incremental model filtered on the `date=` Hive partition.
+- Freshness checks read only the newest files — deterministic filenames sort chronologically — so monitoring cost stays flat as history grows.
 - The cloud path is verified up to authentication — unit-tested object keys and publish logic, both dbt targets compile, and a cloud-target run reaches Google's storage API (rejected only for lack of real credentials). It has not yet been exercised against a live bucket.
 
 ## Project status

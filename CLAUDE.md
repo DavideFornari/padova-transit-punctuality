@@ -120,6 +120,10 @@ Still unproven, in the order it should be done:
       and point DuckDB at it with an endpoint override, to exercise partition globbing and
       remote Parquet reads. Does not cover the `gcs` secret type against Google itself.
 
+Once this checklist is done, update the "cloud path … has not yet been exercised against
+a live bucket" bullet in the README's "Known limits" section — it is the same status
+recorded twice, and both must move together.
+
 ---
 
 # Improvement backlog
@@ -136,87 +140,7 @@ exact edits; quote blocks marked OLD must match the file exactly (they did on
 
 ## Task 3 — DONE (2026-07-31): skipped stops now decode as NULL, not zero delay; filtered out of the fact table and dashboard aggregates
 
-## Task 4 — freshness check false-alarms all night and reads all history  [OPERATIONAL, MEDIUM]
-
-**File:** `src/padova_transit/quality/freshness.py` (and `dags/check_freshness.py`,
-`tests/test_freshness.py`)
-
-**Problem:** (a) the docstring of `check_rt_freshness` promises "outside service
-hours we skip the check" but no such code exists — once any data exists, every
-nightly run raises `StaleDataError`, training operators to ignore the alert.
-(b) `latest_rt_feed_timestamp` reads EVERY Parquet file ever written (~2,880/day at
-minute cadence) on every 10-minute check. (c) naive datetimes make the math depend
-on the host timezone.
-
-**Edit 1 —** rewrite `latest_rt_feed_timestamp`. Filenames are UTC timestamps, so
-lexicographic descending sort of the full glob = newest first; empty feeds never
-write files, so the newest file has rows:
-
-```python
-def latest_rt_feed_timestamp(base_dir: Path, feed_name: str) -> int | None:
-    """Return the max feed_timestamp from the newest Parquet files of a RT feed.
-
-    Filenames embed the UTC poll timestamp, so sorting the glob descending puts
-    the newest file first — only a handful of files are read, not the history.
-    Returns None if no files exist (first deploy, or outside service hours).
-    """
-    pattern = str(base_dir / feed_name / "date=*" / "hour=*" / "*.parquet")
-    files = sorted(glob.glob(pattern), reverse=True)
-    for f in files[:5]:
-        table = pq.read_table(f, columns=["feed_timestamp"])
-        if table.num_rows > 0:
-            return max(table.column("feed_timestamp").to_pylist())
-    return None
-```
-
-Move `import glob` to the module's top-level imports. Add to the imports:
-`from datetime import UTC, datetime, timedelta` and `from zoneinfo import ZoneInfo`.
-
-**Edit 2 —** module-level constants and quiet-hours gate in `check_rt_freshness`:
-
-```python
-ROME = ZoneInfo("Europe/Rome")
-# The tram does not run roughly 00:00-05:00 Europe/Rome; a freshness alarm in
-# that window would be a permanent nightly false positive.
-QUIET_HOURS = range(0, 5)
-```
-
-At the top of `check_rt_freshness` (docstring: state that `now` must be
-timezone-aware):
-
-```python
-    if now.astimezone(ROME).hour in QUIET_HOURS:
-        logger.info("Quiet hours in Europe/Rome — skipping %s freshness check", feed_name)
-        return
-```
-
-And make the comparison timezone-aware. OLD: `feed_time = datetime.fromtimestamp(ts)`
-NEW: `feed_time = datetime.fromtimestamp(ts, tz=UTC)`.
-
-**Edit 3 —** `latest_static_download` currently mixes naive and aware datetimes
-(`downloaded_at` written by Airflow includes an offset; test fixtures do not).
-After parsing, normalise: OLD `return max(datetime.fromisoformat(d) for d in dates)`
-NEW:
-
-```python
-    parsed = [datetime.fromisoformat(d) for d in dates]
-    return max(d if d.tzinfo else d.replace(tzinfo=UTC) for d in parsed)
-```
-
-**Edit 4 —** `dags/check_freshness.py`: change all three `now=datetime.now()` to
-`now=datetime.now(UTC)` and import `UTC` from `datetime`.
-
-**Edit 5 —** `tests/test_freshness.py`: make every `now=datetime(...)` argument
-timezone-aware (`tzinfo=UTC`) and choose hours whose Europe/Rome equivalent is
-OUTSIDE 00:00–05:00 (e.g. 10:00 UTC) so existing stale/fresh assertions still
-trigger. Add one new test:
-
-```python
-def test_rt_freshness_skipped_during_quiet_hours(tmp_path: Path) -> None:
-    """02:30 Europe/Rome (00:30 UTC in summer): stale data must NOT raise."""
-    now = datetime(2026, 7, 30, 0, 30, tzinfo=UTC)
-    check_rt_freshness(tmp_path, "trip_updates", now=now)  # must not raise
-```
+## Task 4 — DONE (2026-07-31): freshness check now has a quiet-hours gate and reads only the newest files
 
 ## Task 5 — no retries on network-bound DAG tasks  [OPERATIONAL, MEDIUM]
 
@@ -300,19 +224,7 @@ already explains this; (b) wire dbt-duckdb `external_location` on each source an
 switch staging models to `{{ source('raw', ...) }}`. Do NOT start (b) without
 asking the user — it touches all eight staging models for cosmetic benefit.
 
-## Task 12 — document freshness cost in README  [DOCS, LOW — only after Task 4]
-
-Partially done 2026-07-31: README already has a "Known limits" section (rescan
-bullet + cloud-verification status). Once Task 4 is implemented, add this bullet
-to that section — it is FALSE until then:
-
-```markdown
-- Freshness checks read only the newest files — deterministic filenames sort
-  chronologically — so monitoring cost stays flat as history grows.
-```
-
-Also update the "cloud path … has not yet been exercised against a live bucket"
-bullet in that section whenever the Open follow-ups checklist above gets done.
+## Task 12 — DONE (2026-07-31): freshness cost documented in README's Known limits
 
 ---
 

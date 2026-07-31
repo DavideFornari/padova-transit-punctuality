@@ -10,7 +10,7 @@ can trigger alerting.
 from __future__ import annotations
 
 import os
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 from airflow.decorators import dag, task
@@ -35,7 +35,7 @@ def check_freshness():
         check_rt_freshness(
             base_dir=DATA_DIR,
             feed_name="trip_updates",
-            now=datetime.now(),
+            now=datetime.now(UTC),
             max_age=timedelta(minutes=10),
         )
 
@@ -44,7 +44,7 @@ def check_freshness():
         check_rt_freshness(
             base_dir=DATA_DIR,
             feed_name="vehicle_positions",
-            now=datetime.now(),
+            now=datetime.now(UTC),
             max_age=timedelta(minutes=10),
         )
 
@@ -52,7 +52,7 @@ def check_freshness():
     def check_static():
         check_static_freshness(
             base_dir=DATA_DIR,
-            now=datetime.now(),
+            now=datetime.now(UTC),
             max_age=timedelta(days=14),
         )
 
