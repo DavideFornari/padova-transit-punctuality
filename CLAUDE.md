@@ -154,14 +154,17 @@ exact edits; quote blocks marked OLD must match the file exactly (they did on
 
 ## Task 10 — DONE (2026-07-31): README status line updated
 
-## Task 11 — dangling dbt sources  [OPTIONAL — decide with the user]
+## Task 11 — dangling dbt sources  [OPTIONAL — decided 2026-07-31: not necessary for now]
 
 `dbt/models/staging/_sources.yml` declares eight source tables that no model
-references via `source()` (staging models call `read_parquet()` directly), so dbt
-lineage is decorative. Options: (a) leave as documentation — the header comment
-already explains this; (b) wire dbt-duckdb `external_location` on each source and
-switch staging models to `{{ source('raw', ...) }}`. Do NOT start (b) without
-asking the user — it touches all eight staging models for cosmetic benefit.
+references via `source()` (staging models call `{{ read_source(...) }}`, the
+cloud-variant macro, directly instead), so dbt lineage is decorative — the
+header comment already explains this. Discussed with the user: keeping it as
+documentation-only is fine; wiring it up via `external_location` and
+`{{ source('raw', ...) }}` would touch all eight staging models for mostly
+cosmetic benefit (an accurate `dbt docs` lineage graph and source-freshness
+checks the project doesn't currently need). Revisit only if either of those
+becomes a real need — otherwise leave as-is.
 
 ## Task 12 — DONE (2026-07-31): freshness cost documented in README's Known limits
 
